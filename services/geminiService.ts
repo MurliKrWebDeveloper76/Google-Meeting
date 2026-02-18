@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 
 const getAI = () => {
   try {
+    // Standard platform environment variable
     const apiKey = process.env.API_KEY;
     if (apiKey) {
       return new GoogleGenAI({ apiKey });
@@ -22,7 +23,7 @@ export interface AIResponse {
  */
 export const getMeetingAssistantAdvice = async (topic: string): Promise<string> => {
   const ai = getAI();
-  if (!ai) return "Focus on key objectives and define immediate next steps.";
+  if (!ai) return "1. Align on objectives\n2. Resource allocation\n3. Timeline definition";
 
   try {
     const response = await ai.models.generateContent({
@@ -63,7 +64,6 @@ export const getRealtimeAdvice = async (transcript: string, currentContext?: str
     
     const text = response.text || "I'm processing the discussion context. How can I assist further?";
     
-    // Extract search grounding metadata for source transparency
     const sources: { title: string; uri: string }[] = [];
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     
@@ -78,7 +78,16 @@ export const getRealtimeAdvice = async (transcript: string, currentContext?: str
     return { text, sources: sources.length > 0 ? sources : undefined };
   } catch (error) {
     console.error("Gemini Insight Error:", error);
-    return { text: "Neural link is stabilizing. Please re-state your request." };
+    // Fallback to Flash if Pro fails
+    try {
+      const fallbackResponse = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Provide a brief response to: "${transcript}" in the context of a meeting.`,
+      });
+      return { text: fallbackResponse.text || "I'm currently stabilizing the neural link." };
+    } catch (e) {
+      return { text: "Neural link is stabilizing. Please re-state your request." };
+    }
   }
 };
 
