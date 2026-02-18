@@ -10,6 +10,7 @@ const App: React.FC = () => {
     isInCall: boolean;
     roomId: string;
     userName: string;
+    agenda?: string;
   }>({
     isInCall: false,
     roomId: '',
@@ -34,32 +35,30 @@ const App: React.FC = () => {
     setUser(name);
   };
 
-  const handleJoin = (roomId: string, userName: string) => {
-    // Update URL to include the room ID so it's bookmarkable/shareable
-    // Wrap in try-catch to prevent SecurityError in restricted environments (blob urls)
+  const handleJoin = (roomId: string, userName: string, agenda?: string) => {
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('room', roomId);
       window.history.pushState({}, '', url);
     } catch (e) {
-      console.warn('URL update restricted in this environment', e);
+      console.warn('URL update restricted', e);
     }
 
     setMeetingState({
       isInCall: true,
       roomId,
       userName,
+      agenda,
     });
   };
 
   const handleLeave = () => {
-    // Remove room from URL on leave
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete('room');
       window.history.pushState({}, '', url);
     } catch (e) {
-      console.warn('URL reset restricted in this environment', e);
+      console.warn('URL reset restricted', e);
     }
 
     setMeetingState(prev => ({
@@ -99,6 +98,7 @@ const App: React.FC = () => {
           <MeetingRoom 
             roomId={meetingState.roomId} 
             userName={meetingState.userName} 
+            initialAgenda={meetingState.agenda}
             onLeave={handleLeave} 
           />
         ) : (
