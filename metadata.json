@@ -1,0 +1,8 @@
+{
+  "name": "NexusMeet AI",
+  "description": "A premium, real-time video conferencing platform with integrated AI meeting assistance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
